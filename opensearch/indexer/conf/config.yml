@@ -1,0 +1,53 @@
+---
+_meta:
+  type: "config"
+  config_version: 2
+
+config:
+  dynamic:
+
+    authc:
+      basic_internal_auth_domain:
+        description: "Authenticate via HTTP Basic against internal users database"
+        http_enabled: true
+        transport_enabled: true
+        order: 1 # Must set to 1 to prevent logs flooding with warnings
+        http_authenticator:
+          type: basic
+          challenge: false
+        authentication_backend:
+          type: internal
+
+      # openid_auth_domain:
+      #   http_enabled: true
+      #   transport_enabled: true
+      #   order: 0 # Must set to 0 to precede basic authentication or logs will flood with warnings
+      #   http_authenticator:
+      #     type: openid
+      #     challenge: false
+      #     config:
+      #       subject_key: email # Users will be able to login with email and show it as username
+      #       roles_key: roles # Use "roles" from custom scope
+      #       openid_connect_url: https://YOUR_IDP.com/.well-known/openid-configuration # App registration IDP metadata file URL
+      #   authentication_backend:
+      #     type: noop # Here we disable authentication backend since we will be using Azure AD for that
+
+      # saml_auth_domain:
+      #   http_enabled: true
+      #   transport_enabled: false
+      #   order: 2
+      #   http_authenticator:
+      #     type: saml
+      #     challenge: true
+      #     config:
+      #       idp:
+      #         metadata_url: https://YOUR_IDP.com/metadata/?download
+      #         entity_id: YOUR_IDP
+      #       sp:
+      #         entity_id: wazuh-dashboard-saml
+      #       kibana_url: https://wazuh.YOUR_DOMAIN
+      #       #subject_key: NameID
+      #       roles_key: http://schemas.xmlsoap.org/claims/Group
+      #       exchange_key: "" # Certificat used to signing response. You can find this in metadata file XML or in your IdP interface.
+      #   authentication_backend:
+      #     type: noop

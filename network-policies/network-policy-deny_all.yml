@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wazuh-net-policy-deny-all
+  namespace: wazuh
+spec:
+  # By default we disable all communications bewteen pods, namespaces, ipBlocks
+  podSelector: {}
+  ingress: []
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP

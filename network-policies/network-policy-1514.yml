@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wazuh-net-policy-allow-agent-event-worker
+  namespace: wazuh
+spec:
+  podSelector:
+    matchLabels:
+      app: wazuh-manager
+      node-type: worker
+  ingress:
+    ### Agents need to reach workers on port 1514 to report events
+    ### It makes more sense to set the CIDRs allowed
+    ### You need to adapt this policy for your case ...
+    # Specific CIDR
+    # - from:
+    #     - ipBlock:
+    #         cidr: 10.10.10.0/32
+    #   ports:
+    #     - port: 1514
+    #       protocol: TCP
+    # Any CIDR
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 1514
+          protocol: TCP

@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wazuh-net-policy-allow-registration-manager
+  namespace: wazuh
+spec:
+  podSelector:
+    matchLabels:
+      app: wazuh-manager
+      node-type: master
+  ingress:
+    ### Agents need to reach the manager on port 1515 (authd) 
+    ### It makes more sense to set the CIDRs allowed
+    ### You need to adapt this policy for your case ...
+    # Specific CIDR
+    # - from:
+    #     - ipBlock:
+    #         cidr: 10.10.10.0/32
+    #   ports:
+    #     - port: 1515
+    #       protocol: TCP
+    # Any CIDR
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 1515
+          protocol: TCP

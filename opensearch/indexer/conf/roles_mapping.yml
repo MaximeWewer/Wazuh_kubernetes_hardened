@@ -1,0 +1,30 @@
+---
+# In this file users, backendroles and hosts can be mapped to Wazuh indexer Security roles.
+# Permissions for Wazuh indexer roles are configured in roles.yml
+
+_meta:
+  type: "rolesmapping"
+  config_version: 2
+
+admin:
+  users:
+    - "${INDEXER_USERNAME}" # Define in indexer-secret
+  backend_roles:
+    - "wazuh_admin" # Name of group mapped in "roles_key" who come from your IdP
+
+wazuh_ui_admin:
+  reserved: true
+  hidden: false
+  backend_roles: []
+  hosts: []
+  users:
+    - "wazuh_admin"
+  and_backend_roles: []
+
+wazuh_ui_user:
+  reserved: true
+  hidden: false
+  backend_roles: []
+  hosts: []
+  users:
+    - "wazuh_user"

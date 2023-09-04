@@ -1,0 +1,36 @@
+hosts:
+  - 1513629884013: # Don't change this ID
+      url: ${WAZUH_API_URL}
+      port: 55000
+      username: "${API_USERNAME}"
+      password: "${API_PASSWORD}"
+      run_as: false
+
+pattern: "wazuh-alerts-4.x-*"    # default index pattern to use
+
+# Checks
+checks.pattern    : true
+checks.template   : true
+checks.fields     : true
+checks.api        : true
+checks.setup      : true
+checks.metaFields : true
+checks.timeFilter : false
+checks.maxBuckets : true
+
+
+# Extensions => https://documentation.wazuh.com/current/user-manual/wazuh-dashboard/config-file.html#extensions
+extensions.pci        : true      # enable pci extension
+extensions.gdpr       : true      # enable gdpr extension
+extensions.hipaa      : true      # enable hipaa extension
+extensions.nist       : true      # enable nist extension
+extensions.tsc        : true      # enable tsc extension
+extensions.audit      : true      # enable audit extension
+extensions.oscap      : false     # enable openscap extension
+extensions.ciscat     : false     # enable ciscat extension
+extensions.aws        : false     # enable aws extension
+extensions.gcp        : false     # enable gcp extension
+extensions.virustotal : false     # enable virustotal extension
+extensions.osquery    : false     # enable osquery extension
+extensions.docker     : true      # enable docker extension
+extensions.office     : true      # enable office extension

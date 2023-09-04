@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wazuh-net-policy-allow-wazuh-cluster-daemon
+  namespace: wazuh
+spec:
+  podSelector:
+    matchLabels:
+      app: wazuh-manager
+      node-type: master
+  ingress:
+    ### Workers need to reach the manager on port 1516 for cluster sync 
+    - from:
+        - podSelector:
+            matchLabels:
+              app: wazuh-manager
+              node-type: worker
+      ports:
+        - port: 1516
+          protocol: TCP

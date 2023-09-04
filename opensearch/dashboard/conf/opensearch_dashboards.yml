@@ -1,0 +1,40 @@
+# server.name: wazuh.dashboard
+server.host: 0.0.0.0
+server.port: 5601
+opensearch.hosts: ${INDEXER_URL}
+
+uiSettings.overrides.defaultRoute: /app/wazuh
+
+server.ssl.enabled: true
+server.ssl.key: "/usr/share/wazuh-dashboard/certs/dashboard.key"
+server.ssl.certificate: "/usr/share/wazuh-dashboard/certs/dashboard.pem"
+
+opensearch.ssl.verificationMode: full
+opensearch.ssl.certificateAuthorities: ["/usr/share/wazuh-dashboard/certs/root-ca.pem"]
+
+# # Use this setting if you are running Wazuh without https
+# opensearch.cookie.secure: false
+
+opensearch.requestHeadersAllowlist: ["securitytenant","Authorization"]
+
+opensearch_security.multitenancy.enabled: false
+#opensearch_security.multitenancy.tenants.preferred: ["Private", "Global"]
+
+#opensearch_security.readonly_mode.roles: ["kibana_read_only"]
+
+### Basic auth ###
+opensearch_security.auth.type: ["basicauth"]
+
+### SSO auth ###
+# opensearch_security.auth.multiple_auth_enabled: true # This is important for first configuration where we need basic authentication to be visible for first login as admin user
+# opensearch_security.auth.type: ["openid", "saml", "basicauth"] # Choose options avaible for SSO 
+
+## OpenID
+# opensearch_security.openid.connect_url: "https://IDP/.well-known/openid-configuration"
+# opensearch_security.openid.client_id: "client_id"
+# opensearch_security.openid.client_secret: "client_secret"
+# opensearch_security.openid.scope: "openid email profile roles_wazuh (ex of scope name)" # Add custom scope from your IdP with claim key => "roles_key" (in scope roles_wazuh) who match with your roles_mapping.yml
+# opensearch_security.openid.base_redirect_url: "https://IDP"
+
+## SAML
+# server.xsrf.allowlist: ["/_plugins/_security/saml/acs/idpinitiated", "/_plugins/_security/saml/acs", "/_plugins/_security/saml/logout", "/_opendistro/_security/saml/acs"]

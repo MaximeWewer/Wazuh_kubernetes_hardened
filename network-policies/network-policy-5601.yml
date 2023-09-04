@@ -1,0 +1,60 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wazuh-net-policy-allow-wazuh-dashboard
+  namespace: wazuh
+spec:
+  podSelector:
+    matchLabels:
+      app: wazuh-dashboard
+  ingress:
+    ### To acces to Wazuh dashboard you need to change conf to be compliant with your environnement
+    ### Maybe you have a reverse proxy in the same namespace, or HAproxy in other namespace, or you have an IT administrator CIDR ...
+    ### You need to adapt this policy to your case ...
+    # # Specific pod
+    # - from:
+    #     - podSelector:
+    #         matchLabels:
+    #           app: pod-XXXX
+    #   ports:
+    #     - port: 5601
+    #       protocol: TCP
+    # # Any pods
+    # - from:
+    #     - podSelector: {}
+    #   ports:
+    #     - port: 5601
+    #       protocol: TCP
+
+    # # Specific namespace
+    # - from:
+    #     - namespaceSelector:
+    #         matchLabels:
+    #           environment: production
+    #     - namespaceSelector:
+    #         matchLabels:
+    #           name: namespace-XXX
+    #   ports:
+    #     - port: 5601
+    #       protocol: TCP
+    # # Any namespace
+    # - from:
+    #     - namespaceSelector: {}
+    #   ports:
+    #     - port: 5601
+    #       protocol: TCP
+
+    # # Specific CIDR
+    # - from:
+    #     - ipBlock:
+    #         cidr: 10.10.10.0/32
+    #   ports:
+    #     - port: 5601
+    #       protocol: TCP
+    # Any CIDR
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 5601
+          protocol: TCP

@@ -1,0 +1,274 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wazuh-indexer
+  namespace: wazuh
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wazuh-indexer
+  serviceName: wazuh-indexer
+  template:
+    metadata:
+      labels:
+        app: wazuh-indexer
+      name: wazuh-indexer
+    spec:
+      serviceAccountName: wazuh-service-account
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: certs
+          secret:
+            secretName: certs
+        - name: indexer-conf
+          configMap:
+            name: indexer-conf
+        - name: tmp-config
+          emptyDir: {}
+        - name: opensearch-pvc
+          persistentVolumeClaim:
+            claimName: opensearch-pvc-local
+      initContainers:
+        # Chown index path data
+        - name: volume-mount-chown
+          # image: busybox:1.36
+          image: busybox@sha256:023917ec6a886d0e8e15f28fb543515a5fcd8d938edb091e8147db4efed388ee
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            privileged: false
+            # runAsNonRoot: true
+            # runAsUser: 1000
+            # runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            # readOnlyRootFilesystem : true
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
+          command:
+            - /bin/sh
+            - '-c'
+            - 'chown -R 1000:1000 /var/lib/wazuh-indexer'
+          volumeMounts:
+            - name: opensearch-pvc
+              mountPath: /var/lib/wazuh-indexer
+        - name: sysctl-opensearch-tune
+          # image: busybox:1.36
+          image: busybox@sha256:023917ec6a886d0e8e15f28fb543515a5fcd8d938edb091e8147db4efed388ee
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            privileged: true # No security restrictions for these low-level system configurations
+            # runAsNonRoot: true
+            # runAsUser: 1000
+            # runAsGroup: 1000
+            # allowPrivilegeEscalation: false
+            # readOnlyRootFilesystem : false
+            # capabilities:
+            #   drop: ["ALL"]
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              CURRENT=$(sysctl -n vm.max_map_count)
+              DESIRED="262144"
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                sysctl -w vm.max_map_count=$DESIRED
+              fi
+        - name: replace-env-vars
+          # image: wazuh/wazuh-indexer:4.5.1
+          image: wazuh/wazuh-indexer@sha256:ce14fa35a724990bb558f51ef978c9e5cb233ab34ab1728625ea0deced1475fc
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            privileged: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            # readOnlyRootFilesystem : true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: OPENSEARCH_JAVA_OPTS
+              value: '-Xms512m -Xmx512m'
+            - name: CLUSTER_NAME
+              value: 'siem-cluster'
+              # https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#components
+              # Headless service : spec.ServiceName = metadata.name (indexer-svc.yml)
+            - name: SEED_HOSTS
+              value: 'wazuh-indexer-0.wazuh-indexer,wazuh-indexer-1.wazuh-indexer' 
+            - name: INIT_MASTERS_NODES
+              value: 'wazuh-indexer-0,wazuh-indexer-1'
+            - name: bootstrap.memory_lock
+              value: 'true'
+            - name: MAX_LOCAL_STORAGE_NODES
+              value: '2'
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: INDEXER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: indexer-cred-bcrypt
+                  key: username
+            - name: INDEXER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: indexer-cred-bcrypt
+                  key: password
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              cp /usr/share/wazuh-indexer/opensearch.yml /conf-opensearch/opensearch.yml
+              cp /usr/share/wazuh-indexer/opensearch-security/config.yml /conf-opensearch/config.yml
+              cp /usr/share/wazuh-indexer/opensearch-security/internal_users.yml /conf-opensearch/internal_users.yml
+              cp /usr/share/wazuh-indexer/opensearch-security/roles_mapping.yml /conf-opensearch/roles_mapping.yml
+
+              ### Opensearch ###
+              sed -i "s|\${NODE_NAME}|$NODE_NAME|g;
+                      s|\${CLUSTER_NAME}|$CLUSTER_NAME|g;
+                      s|\${SEED_HOSTS}|$SEED_HOSTS|g;
+                      s|\${INIT_MASTERS_NODES}|$INIT_MASTERS_NODES|g;
+                      s|\${MAX_LOCAL_STORAGE_NODES}|$MAX_LOCAL_STORAGE_NODES|g" /conf-opensearch/opensearch.yml
+              
+              ### Config ###
+              # sed -i "s|\${XXX}|$XXX|g" /conf-opensearch/config.yml
+              
+              ### Internal users ###
+              sed -i "s|\${INDEXER_USERNAME}|$INDEXER_USERNAME|g;
+                      s|\${INDEXER_PASSWORD}|$INDEXER_PASSWORD|g" /conf-opensearch/internal_users.yml
+              
+              ### Roles mapping ###
+              sed -i "s|\${INDEXER_USERNAME}|$INDEXER_USERNAME|g" /conf-opensearch/roles_mapping.yml
+          volumeMounts:
+            - name: tmp-config
+              mountPath: /conf-opensearch/
+              readOnly: false
+            - name: indexer-conf
+              mountPath: /usr/share/wazuh-indexer/opensearch.yml
+              subPath: opensearch.yml
+              readOnly: true
+            - name: indexer-conf
+              mountPath: /usr/share/wazuh-indexer/opensearch-security/config.yml
+              subPath: config.yml
+              readOnly: true
+            - name: indexer-conf
+              mountPath: /usr/share/wazuh-indexer/opensearch-security/internal_users.yml
+              subPath: internal_users.yml
+              readOnly: true
+            - name: indexer-conf
+              mountPath: /usr/share/wazuh-indexer/opensearch-security/roles_mapping.yml
+              subPath: roles_mapping.yml
+              readOnly: true
+      containers:
+        - name: wazuh-indexer
+          # image: wazuh/wazuh-indexer:4.5.1
+          image: wazuh/wazuh-indexer@sha256:ce14fa35a724990bb558f51ef978c9e5cb233ab34ab1728625ea0deced1475fc
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9200
+              name: indexer-rest
+            - containerPort: 9300
+              name: indexer-nodes
+          # startupProbe: {}
+          # livenessProbe: {}
+          # readinessProbe: {}
+          resources:
+            requests:
+              cpu: 200m
+              memory: 1Gi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            # readOnlyRootFilesystem : true
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE"]
+          env:
+            - name: JAVA_HOME
+              value: '/usr/share/wazuh-indexer/jdk'
+            - name: DISABLE_INSTALL_DEMO_CONFIG
+              value: 'true'
+            - name: OPENSEARCH_JAVA_OPTS
+              value: '-Xms512m -Xmx512m' # Sets the size of the Java heap. It' recommend half of system RAM, so adapt resources.
+            - name: DISCOVERY_SERVICE
+              value: wazuh-indexer
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            # Conf
+            - name: certs
+              mountPath: /usr/share/wazuh-indexer/certs/wildcard.indexer.pem
+              subPath: wildcard.indexer.pem
+              readOnly: true
+            - name: certs
+              mountPath: /usr/share/wazuh-indexer/certs/wildcard.indexer.key
+              subPath: wildcard.indexer.key
+              readOnly: true
+            - name: certs
+              mountPath: /usr/share/wazuh-indexer/certs/root-ca.pem
+              subPath: root-ca.pem
+              readOnly: true
+            - name: certs
+              mountPath: /usr/share/wazuh-indexer/certs/admin_cert.pem
+              subPath: admin-cert.pem
+              readOnly: true
+            - name: certs
+              mountPath: /usr/share/wazuh-indexer/certs/admin_cert.key
+              subPath: admin-cert.key
+              readOnly: true
+            - name: tmp-config
+              mountPath: /usr/share/wazuh-indexer/opensearch.yml
+              subPath: opensearch.yml
+              readOnly: true
+            - name: tmp-config
+              mountPath: /usr/share/wazuh-indexer/opensearch-security/config.yml
+              subPath: config.yml
+              readOnly: true
+            - name: tmp-config
+              mountPath: /usr/share/wazuh-indexer/opensearch-security/internal_users.yml
+              subPath: internal_users.yml
+              readOnly: true
+            - name: tmp-config
+              mountPath: /usr/share/wazuh-indexer/opensearch-security/roles_mapping.yml
+              subPath: roles_mapping.yml
+              readOnly: true
+            - name: indexer-conf
+              mountPath: /usr/share/wazuh-indexer/opensearch-security/roles.yml
+              subPath: roles.yml
+              readOnly: true
+            # Data
+            - name: opensearch-pvc
+              mountPath: /var/lib/wazuh-indexer
+              readOnly: false

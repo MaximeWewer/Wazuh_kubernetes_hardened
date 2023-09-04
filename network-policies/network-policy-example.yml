@@ -1,0 +1,60 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wazuh_net_policy_XXX
+  namespace: wazuh
+spec:
+  podSelector:
+    matchLabels:
+      app: XXXX
+  ingress:
+    #### Pods ####
+    # Specific pod
+    - from:
+        - podSelector:
+            matchLabels:
+              app: pod-XXXX
+      ports:
+        - port: 514
+          protocol: TCP
+    # Any pods
+    - from:
+        - podSelector: {}
+      ports:
+        - port: 514
+          protocol: TCP
+
+    #### Namespace ####
+    # Specific namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              environment: production
+        - namespaceSelector:
+            matchLabels:
+              name: namespace-XXX
+      ports:
+        - port: 514
+          protocol: TCP
+    # Any namespace
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: 514
+          protocol: TCP
+
+    #### IpBlock ####
+    # Specific CIDR
+    - from:
+        - ipBlock:
+            cidr: 10.10.10.0/32
+      ports:
+        - port: 514
+          protocol: TCP
+    # Any CIDR
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 514
+          protocol: TCP

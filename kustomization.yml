@@ -1,0 +1,101 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: wazuh
+
+secretGenerator:
+  - name: certs
+    files:
+      - certs/out/root-ca.pem
+      - certs/out/wildcard.indexer.pem
+      - certs/out/wildcard.indexer.key
+      - certs/out/dashboard.pem
+      - certs/out/dashboard.key
+      - certs/out/admin_cert.pem
+      - certs/out/admin_cert.key
+      - certs/out/filebeat.pem
+      - certs/out/filebeat.key
+
+configMapGenerator:
+  - name: indexer-conf
+    files:
+      - opensearch/indexer/conf/config.yml
+      - opensearch/indexer/conf/internal_users.yml
+      - opensearch/indexer/conf/opensearch.yml 
+      - opensearch/indexer/conf/roles_mapping.yml
+      - opensearch/indexer/conf/roles.yml
+
+  - name: dashboard-conf
+    files:
+      - opensearch/dashboard/conf/opensearch_dashboards.yml
+      - opensearch/dashboard/conf/wazuh_dashboard.yml
+
+  - name: wazuh-conf
+    files:
+      - wazuh/conf/manager.conf
+      - wazuh/conf/worker.conf
+      - wazuh/conf/local_internal_options.conf
+
+  - name: filebeat-conf
+    files:
+      - wazuh/filebeat/alerts_manifest.yml
+      - wazuh/filebeat/archives_manifest.yml
+      - wazuh/filebeat/filebeat.yml
+      - wazuh/filebeat/wazuh_alerts_pipeline.json
+      - wazuh/filebeat/wazuh-template.json
+      
+resources:
+  # Base
+  - base/ns.yml
+  - base/storage-class.yml
+  - base/pv-opensearch.yml
+  - base/pvc-opensearch.yml
+  - base/pv-wazuh.yml
+  - base/pvc-wazuh.yml
+
+  # Secrets
+  - secrets/indexer-secret-bcrypt.yml
+  - secrets/indexer-secret.yml
+  - secrets/wazuh-api-secret.yml
+  - secrets/wazuh-authd-secret.yml
+  - secrets/wazuh-cluster-secret.yml
+
+  # Network policies
+  - network-policies/network-policy-deny_all.yml
+  - network-policies/network-policy-514.yml
+  - network-policies/network-policy-1514.yml
+  - network-policies/network-policy-1515.yml
+  - network-policies/network-policy-1516.yml
+  - network-policies/network-policy-5601.yml
+  - network-policies/network-policy-9200.yml
+  - network-policies/network-policy-9300.yml
+  - network-policies/network-policy-55000.yml
+
+  # RBAC
+  - rbac/role-configmaps.yml
+  - rbac/role-deployments.yml
+  - rbac/role-ingresses.yml
+  - rbac/role-pods.yml
+  - rbac/role-secrets.yml
+  - rbac/role-services.yml
+  - rbac/rolebinding-configmaps.yml
+  - rbac/rolebinding-deployments.yml
+  - rbac/rolebinding-ingresses.yml
+  - rbac/rolebinding-pods.yml
+  - rbac/rolebinding-secrets.yml
+  - rbac/rolebinding-services.yml
+  - rbac/service-account.yml
+
+  # Wazuh
+  - wazuh/wazuh-cluster-svc.yml
+  - wazuh/wazuh-manager-sts.yml
+  - wazuh/wazuh-manager-svc.yml
+  - wazuh/wazuh-worker-sts.yml
+  - wazuh/wazuh-worker-svc.yml
+
+  # Opensearch - Indexer & Dashboard
+  - opensearch/indexer/indexer-api-svc.yml
+  - opensearch/indexer/indexer-sts.yml
+  - opensearch/indexer/indexer-svc.yml
+  - opensearch/dashboard/dashboard-deploy.yml
+  - opensearch/dashboard/dashboard-svc.yml

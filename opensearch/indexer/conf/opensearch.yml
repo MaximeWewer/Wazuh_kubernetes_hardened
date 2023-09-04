@@ -1,0 +1,36 @@
+network.host: 0.0.0.0
+node.name: ${NODE_NAME}
+cluster.name: ${CLUSTER_NAME}
+discovery.seed_hosts: ${SEED_HOSTS}
+cluster.initial_master_nodes: ${INIT_MASTERS_NODES}
+http.compression: true
+
+compatibility.override_main_response_version: true
+
+node.max_local_storage_nodes: ${MAX_LOCAL_STORAGE_NODES}
+
+path.data: /var/lib/wazuh-indexer
+path.logs: /var/log/wazuh-indexer
+
+plugins.security.ssl.transport.pemcert_filepath: /usr/share/wazuh-indexer/certs/wildcard.indexer.pem
+plugins.security.ssl.transport.pemkey_filepath: /usr/share/wazuh-indexer/certs/wildcard.indexer.key
+plugins.security.ssl.transport.pemtrustedcas_filepath: /usr/share/wazuh-indexer/certs/root-ca.pem
+plugins.security.ssl.transport.enforce_hostname_verification: false
+plugins.security.ssl.transport.resolve_hostname: false
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: /usr/share/wazuh-indexer/certs/wildcard.indexer.pem
+plugins.security.ssl.http.pemkey_filepath: /usr/share/wazuh-indexer/certs/wildcard.indexer.key
+plugins.security.ssl.http.pemtrustedcas_filepath: /usr/share/wazuh-indexer/certs/root-ca.pem
+
+plugins.security.nodes_dn:
+    - 'CN=*.wazuh-indexer,OU=Wazuh,O=Company,L=Strasbourg,ST=ALSACE,C=FR'
+    - 'CN=filebeat,OU=Wazuh,O=Company,L=Strasbourg,ST=ALSACE,C=FR'
+    
+plugins.security.authcz.admin_dn:
+    - 'CN=admin_cert,OU=Wazuh,O=Company,L=Strasbourg,ST=ALSACE,C=FR'
+
+plugins.security.audit.type: internal_opensearch
+plugins.security.enable_snapshot_restore_privilege: true
+plugins.security.check_snapshot_restore_write_privileges: true
+plugins.security.restapi.roles_enabled: ["admin"] # This value match your roles in roles.yml
+plugins.security.allow_default_init_securityindex: true

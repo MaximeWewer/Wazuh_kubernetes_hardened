@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: wazuh-dashboard
+  name: wazuh-dashboard
+  namespace: wazuh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-dashboard
+  template:
+    metadata:
+      labels:
+        app: wazuh-dashboard
+      name: wazuh-dashboard
+    spec:
+      serviceAccountName: wazuh-service-account
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: dashboard-conf
+          configMap:
+            name: dashboard-conf
+        - name: tmp-config
+          emptyDir: {}
+        - name: certs
+          secret:
+            secretName: certs
+      initContainers:
+        - name: replace-env-vars
+          # image: wazuh/wazuh-dashboard:4.5.1
+          image: wazuh/wazuh-dashboard@sha256:867c5b48831b0bf271f3650928a97876afb53136fed057fc2e2bc5a845b4e91c
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            privileged: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            # readOnlyRootFilesystem : true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: INDEXER_URL
+              value: '["https://wazuh-indexer:9200"]' # Call service not pods
+            - name: WAZUH_API_URL
+              value: https://wazuh-manager
+            - name: API_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-api-cred
+                  key: username
+            - name: API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-api-cred
+                  key: password
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              cp /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml /conf-dash/opensearch_dashboards.yml
+              cp /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml /conf-dash/wazuh_dash.yml
+
+              ### Dash ###
+              sed -i "s|\${INDEXER_URL}|$INDEXER_URL|g" /conf-dash/opensearch_dashboards.yml
+
+              ### Wazuh ###
+              sed -i "s|\${WAZUH_API_URL}|$WAZUH_API_URL|g;
+                      s|\${API_USERNAME}|$API_USERNAME|g;
+                      s|\${API_PASSWORD}|$API_PASSWORD|g" /conf-dash/wazuh_dash.yml
+          volumeMounts:
+            - name: tmp-config
+              mountPath: /conf-dash/
+              readOnly: false
+            - name: dashboard-conf
+              mountPath: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
+              subPath: opensearch_dashboards.yml
+              readOnly: false
+            - name: dashboard-conf
+              mountPath: /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
+              subPath: wazuh_dashboard.yml
+              readOnly: false
+      containers:
+        - name: wazuh-dashboard
+          # image: wazuh/wazuh-dashboard:4.5.1
+          image: wazuh/wazuh-dashboard@sha256:867c5b48831b0bf271f3650928a97876afb53136fed057fc2e2bc5a845b4e91c
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5601
+              name: wazuh-dash-port
+          # startupProbe: {}
+          # livenessProbe: {}
+          # readinessProbe: {}
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            privileged: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            # readOnlyRootFilesystem : true
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE"]
+          env:
+            # You can omit the opensearch.username and the opensearch.password settings as they are now stored in the Wazuh dashboard keystore
+            - name: DASHBOARD_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: indexer-cred
+                  key: username
+            - name: DASHBOARD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: indexer-cred
+                  key: password
+          volumeMounts:
+            - name: tmp-config
+              mountPath: /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
+              subPath: wazuh_dash.yml
+              readOnly: false
+            - name: tmp-config
+              mountPath: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
+              subPath: opensearch_dashboards.yml
+              readOnly: false
+            - name: certs
+              mountPath: /usr/share/wazuh-dashboard/certs/root-ca.pem
+              subPath: root-ca.pem
+              readOnly: true
+            - name: certs
+              mountPath: /usr/share/wazuh-dashboard/certs/dashboard.pem
+              subPath: dashboard.pem
+              readOnly: true
+            - name: certs
+              mountPath: /usr/share/wazuh-dashboard/certs/dashboard.key
+              subPath: dashboard.key
+              readOnly: true

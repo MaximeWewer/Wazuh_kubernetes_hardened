@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: indexer-cluster-net-policy-allow-indexer-nodes
+  namespace: wazuh
+spec:
+  podSelector:
+    matchLabels:
+      app: wazuh-indexer
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: wazuh-indexer
+      ports:
+        - port: 9300
+          protocol: TCP
