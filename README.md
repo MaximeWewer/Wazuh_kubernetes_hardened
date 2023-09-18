@@ -95,7 +95,7 @@ You can setup your reverse proxy / HA proxy / API gateway or use port-forward (f
 │   ├── role-secrets.yml
 │   ├── role-services.yml
 │   ├── rolebinding-configmaps.yml
-│   ├── rolebinding-deployements.yml
+│   ├── rolebinding-deployments.yml
 │   ├── rolebinding-pods.yml
 │   ├── rolebinding-secrets.yml
 │   ├── rolebinding-services.yml
