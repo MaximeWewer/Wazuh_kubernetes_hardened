@@ -91,8 +91,8 @@ spec:
                 sysctl -w vm.max_map_count=$DESIRED
               fi
         - name: replace-env-vars
-          # image: wazuh/wazuh-indexer:4.5.0
-          image: wazuh/wazuh-indexer@sha256:797631be99d635c313a9567382b3310ad46c8392ead9305e5bcb63473474a335
+          # image: wazuh/wazuh-indexer:4.5.1
+          image: wazuh/wazuh-indexer@sha256:ce14fa35a724990bb558f51ef978c9e5cb233ab34ab1728625ea0deced1475fc
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -186,8 +186,8 @@ spec:
               readOnly: true
       containers:
         - name: wazuh-indexer
-          # image: wazuh/wazuh-indexer:4.5.0
-          image: wazuh/wazuh-indexer@sha256:797631be99d635c313a9567382b3310ad46c8392ead9305e5bcb63473474a335
+          # image: wazuh/wazuh-indexer:4.5.1
+          image: wazuh/wazuh-indexer@sha256:ce14fa35a724990bb558f51ef978c9e5cb233ab34ab1728625ea0deced1475fc
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9200
