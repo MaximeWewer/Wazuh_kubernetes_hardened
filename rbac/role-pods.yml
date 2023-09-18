@@ -4,6 +4,6 @@ metadata:
   namespace: wazuh
   name: role-pods
 rules:
-- apiGroups: [""]
+- apiGroups: [""] # "" indicates the core API group
   resources: ["pods"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

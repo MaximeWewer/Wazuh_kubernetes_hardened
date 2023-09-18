@@ -4,6 +4,6 @@ metadata:
   namespace: wazuh
   name: role-services
 rules:
-- apiGroups: [""]
+- apiGroups: [""] # "" indicates the core API group
   resources: ["services"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

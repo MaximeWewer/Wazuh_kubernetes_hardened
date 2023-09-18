@@ -4,6 +4,6 @@ metadata:
   namespace: wazuh
   name: role-deployments
 rules:
-- apiGroups: [""]
+- apiGroups: [""] # "" indicates the core API group
   resources: ["deployments"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

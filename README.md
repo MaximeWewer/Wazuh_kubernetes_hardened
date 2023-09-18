@@ -91,13 +91,11 @@ You can setup your reverse proxy / HA proxy / API gateway or use port-forward (f
 ├── rbac
 │   ├── role-configmaps.yml
 │   ├── role-deployments.yml
-│   ├── role-ingresses.yml
 │   ├── role-pods.yml
 │   ├── role-secrets.yml
 │   ├── role-services.yml
 │   ├── rolebinding-configmaps.yml
 │   ├── rolebinding-deployements.yml
-│   ├── rolebinding-ingress.yml
 │   ├── rolebinding-pods.yml
 │   ├── rolebinding-secrets.yml
 │   ├── rolebinding-services.yml

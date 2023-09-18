@@ -74,13 +74,11 @@ resources:
   # RBAC
   - rbac/role-configmaps.yml
   - rbac/role-deployments.yml
-  - rbac/role-ingresses.yml
   - rbac/role-pods.yml
   - rbac/role-secrets.yml
   - rbac/role-services.yml
   - rbac/rolebinding-configmaps.yml
   - rbac/rolebinding-deployments.yml
-  - rbac/rolebinding-ingresses.yml
   - rbac/rolebinding-pods.yml
   - rbac/rolebinding-secrets.yml
   - rbac/rolebinding-services.yml
