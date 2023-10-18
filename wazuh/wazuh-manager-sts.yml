@@ -41,8 +41,8 @@ spec:
             claimName: wazuh-pvc-local
       initContainers:
         - name: replace-env-vars
-          # image: wazuh/wazuh-manager:4.5.2
-          image: wazuh/wazuh-manager@sha256:7e3b2877576e6175ac833dedba3df8ea86bc6338a0bccad577af88f9ccca52aa
+          # image: wazuh/wazuh-manager:4.5.3
+          image: wazuh/wazuh-manager@sha256:b20290a6fc0b7e802c70aa844f067fbddc3a489dd5744f14464abd3cdc3e29f0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -110,8 +110,8 @@ spec:
               readOnly: true
       containers:
         - name: wazuh-manager
-          # image: wazuh/wazuh-manager:4.5.2
-          image: wazuh/wazuh-manager@sha256:7e3b2877576e6175ac833dedba3df8ea86bc6338a0bccad577af88f9ccca52aa
+          # image: wazuh/wazuh-manager:4.5.3
+          image: wazuh/wazuh-manager@sha256:b20290a6fc0b7e802c70aa844f067fbddc3a489dd5744f14464abd3cdc3e29f0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 1515
