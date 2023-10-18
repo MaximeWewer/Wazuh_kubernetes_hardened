@@ -25,6 +25,10 @@ Even if your Wazuh deployment is more secure, you still need to make sure to cov
 - Define policy to automate backup & restore
 - Etc
 
+### ToDo
+- Restrict container's syscalls with [Seccomp](https://kubernetes.io/docs/tutorials/security/seccomp/)
+- Study the possibility of using [AppArmor](https://kubernetes.io/docs/tutorials/security/apparmor/) & [SELinux](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#assign-selinux-labels-to-a-container)
+
 ### Deployment
 #### Specific local tests
 - A local Kubernetes environment (1.25+) with Minikube, Microk8s, Kind, ...
