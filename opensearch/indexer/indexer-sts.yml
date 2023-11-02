@@ -56,7 +56,7 @@ spec:
               add: ["CHOWN"]
           command:
             - /bin/sh
-            - '-c'
+            - '-ec'
             - 'chown -R 1000:1000 /var/lib/wazuh-indexer'
           volumeMounts:
             - name: opensearch-pvc
@@ -91,8 +91,8 @@ spec:
                 sysctl -w vm.max_map_count=$DESIRED
               fi
         - name: replace-env-vars
-          # image: wazuh/wazuh-indexer:4.5.4
-          image: wazuh/wazuh-indexer@sha256:5ad7e30011810dfdad91bcd9e983f9730f3229fdfc71fbfdc42b3e1b5a19cd68
+          # image: wazuh/wazuh-indexer:4.6.0
+          image: wazuh/wazuh-indexer@sha256:9161877873e2c9a3064bc1a2e1e2635846b1cb6e5ddbd5cc37963770a865496e
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -186,8 +186,8 @@ spec:
               readOnly: true
       containers:
         - name: wazuh-indexer
-          # image: wazuh/wazuh-indexer:4.5.4
-          image: wazuh/wazuh-indexer@sha256:5ad7e30011810dfdad91bcd9e983f9730f3229fdfc71fbfdc42b3e1b5a19cd68
+          # image: wazuh/wazuh-indexer:4.6.0
+          image: wazuh/wazuh-indexer@sha256:9161877873e2c9a3064bc1a2e1e2635846b1cb6e5ddbd5cc37963770a865496e
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9200
