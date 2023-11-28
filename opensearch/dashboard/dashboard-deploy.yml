@@ -31,8 +31,8 @@ spec:
             secretName: certs
       initContainers:
         - name: replace-env-vars
-          # image: wazuh/wazuh-dashboard:4.6.0
-          image: wazuh/wazuh-dashboard@sha256:12a56c11ec7147c6ba14f966be192a3c6ada2d8344e41918d9204f77a50822be
+          # image: wazuh/wazuh-dashboard:4.7.0
+          image: wazuh/wazuh-dashboard@sha256:3fce7c14791fecd6be48083bb6f5eeac6ab72c35335ce494a0fd63e75e30ee8a
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -93,8 +93,8 @@ spec:
               readOnly: false
       containers:
         - name: wazuh-dashboard
-          # image: wazuh/wazuh-dashboard:4.6.0
-          image: wazuh/wazuh-dashboard@sha256:12a56c11ec7147c6ba14f966be192a3c6ada2d8344e41918d9204f77a50822be
+          # image: wazuh/wazuh-dashboard:4.7.0
+          image: wazuh/wazuh-dashboard@sha256:3fce7c14791fecd6be48083bb6f5eeac6ab72c35335ce494a0fd63e75e30ee8a
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5601
